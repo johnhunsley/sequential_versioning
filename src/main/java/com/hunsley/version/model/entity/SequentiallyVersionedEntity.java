@@ -3,15 +3,13 @@ package com.hunsley.version.model.entity;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import javax.persistence.Column;
-import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.MappedSuperclass;
 import lombok.Data;
 
 @Data
-@Entity
-@Table(name = "widget")
-public class WidgetEntity implements Serializable {
+@MappedSuperclass
+public class SequentiallyVersionedEntity implements Serializable {
 
   @Id
   @Column(name = "id")
@@ -25,9 +23,6 @@ public class WidgetEntity implements Serializable {
 
   @Column(name = "previous_serial_version_id")
   private String previousSerialVersionId;
-
-  @Column(name = "name")
-  private String name;
 
   @Column(name = "update_time")
   private Timestamp updateTime;
