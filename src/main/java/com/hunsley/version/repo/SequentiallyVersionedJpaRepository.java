@@ -9,9 +9,9 @@ import org.springframework.stereotype.Repository;
 interface SequentiallyVersionedJpaRepository<T extends SequentiallyVersionedEntity> extends JpaRepository<T, String> {
 
 
-  @Query("select w from SequentiallyVersionedEntity w where w.guid = :guid and w.nextSerialVersionId is null")
+  @Query("select s from SequentiallyVersionedEntity s where s.guid = :guid and s.nextSerialVersionId is null")
   T findCurrentByGuid(String guid);
 
-  @Query("select w from SequentiallyVersionedEntity w where w.guid = :guid")
+  @Query("select s from SequentiallyVersionedEntity s where s.guid = :guid order by s.updateTime asc")
   List<T> findAllVersionsByGuid(String guid);
 }

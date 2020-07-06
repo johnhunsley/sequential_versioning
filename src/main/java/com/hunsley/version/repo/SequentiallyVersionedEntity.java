@@ -9,7 +9,7 @@ import lombok.Data;
 
 @Data
 @MappedSuperclass
-public abstract class SequentiallyVersionedEntity implements Serializable {
+public abstract class SequentiallyVersionedEntity implements Serializable, Comparable<SequentiallyVersionedEntity> {
 
 
   @Column(name = "guid", nullable = false)
@@ -30,4 +30,9 @@ public abstract class SequentiallyVersionedEntity implements Serializable {
 
   @Column(name = "persistence_time", nullable = false)
   private Timestamp persistenceTime;
+
+  @Override
+  public int compareTo(SequentiallyVersionedEntity that) {
+    return this.updateTime.compareTo(that.updateTime);
+  }
 }

@@ -6,6 +6,8 @@ import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.UUID;
+import org.apache.commons.lang3.SerializationUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 public abstract class SequentiallyVersionedDao<T extends SequentiallyVersionedEntity> {
@@ -27,22 +29,16 @@ public abstract class SequentiallyVersionedDao<T extends SequentiallyVersionedEn
    * @param entity
    * @return The given entity of type T associated to the session
    */
-  private final T save(final T entity) {
-    final String serialVersionId = generateRandomUUID();
-
-    if (sequentiallyVersionedJpaRepository.findById(serialVersionId).isPresent()) {
-      throw new RuntimeException(format("Persistent entity of type %s already has version %s",
-          entity.getClass().getName(), serialVersionId));
-    }
-
+  protected final T save(final T entity) {
+    entity.setSerialVersionId(generateSerialVersionId());
     String guid = entity.getGuid();
 
     if (StringUtils.isEmpty(guid)) {
-      guid = generateRandomUUID();
+      guid = generateSerialVersionId();
       entity.setGuid(guid);
     }
 
-    if (!sequentiallyVersionedJpaRepository.findAllVersionsByGuid(guid).isEmpty()) {
+    if (!CollectionUtils.isEmpty(sequentiallyVersionedJpaRepository.findAllVersionsByGuid(guid))) {
       throw new RuntimeException(format("Persistent entity of type %s already has guid %s",
           entity.getClass().getName(), guid));
     }
@@ -51,13 +47,17 @@ public abstract class SequentiallyVersionedDao<T extends SequentiallyVersionedEn
     return sequentiallyVersionedJpaRepository.save(entity);
   }
 
-  private final T update(final T entity) {
+  protected final T update(final T entity) {
 
     // check guid already exists - get all by guid
-
+    if (CollectionUtils.isEmpty(sequentiallyVersionedJpaRepository.findAllVersionsByGuid(entity.getGuid()))) {
+      throw new RuntimeException(format("Attempt to update an entity with guid %s which does not exist",
+          entity.getGuid()));
+    }
     //clone entity
 
-    //set serialVersionId
+    T clone = SerializationUtils.clone(entity);
+    clone.setSerialVersionId(generateSerialVersionId());
 
     // get the update time
 
@@ -66,7 +66,14 @@ public abstract class SequentiallyVersionedDao<T extends SequentiallyVersionedEn
     //update each entity and persist the new clone
   }
 
-  private static String generateRandomUUID() {
-    return UUID.randomUUID().toString();
+
+  private String generateSerialVersionId() {
+    UUID serialVersionId ;
+
+    do {
+      serialVersionId = UUID.randomUUID();
+    } while (sequentiallyVersionedJpaRepository.findById(serialVersionId.toString()).isPresent());
+
+    return serialVersionId.toString();
   }
 }
