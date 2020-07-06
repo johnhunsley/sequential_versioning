@@ -1,4 +1,4 @@
-package com.hunsley.version.model.entity;
+package com.hunsley.version.repo;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -9,24 +9,25 @@ import lombok.Data;
 
 @Data
 @MappedSuperclass
-public class SequentiallyVersionedEntity implements Serializable {
+public abstract class SequentiallyVersionedEntity implements Serializable {
 
-  @Id
-  @Column(name = "id")
+
+  @Column(name = "guid", nullable = false)
   private String guid;
 
+  @Id
   @Column(name = "serial_version_id")
   private String serialVersionId;
 
-  @Column(name = "next_serial_version_id")
+  @Column(name = "next_serial_version_id", nullable = false)
   private String nextSerialVersionId;
 
-  @Column(name = "previous_serial_version_id")
+  @Column(name = "previous_serial_version_id", nullable = false)
   private String previousSerialVersionId;
 
-  @Column(name = "update_time")
+  @Column(name = "update_time", nullable = false)
   private Timestamp updateTime;
 
-  @Column(name = "persistence_time")
+  @Column(name = "persistence_time", nullable = false)
   private Timestamp persistenceTime;
 }
